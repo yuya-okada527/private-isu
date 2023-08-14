@@ -21,3 +21,8 @@ alp:
 	cat webapp/logs/nginx/access.log | alp json --sort=sum -r -m "/image/[0-9]+\.(jpg|png|gif),/posts/[0-9]+,/@[a-z]"
 ctop:
 	ctop -a
+slow-query:
+	cat webapp/logs/mysql/mysql-slow.log | pt-query-digest
+rotate_slow-query:
+	cd webapp && docker-compose exec mysql bash -c "mv /var/log/mysql/mysql-slow.log /var/log/mysql/mysql-slow.log.$$(date +%Y%m%d%H%M%S)" && cd ..
+	cd webapp && docker-compose exec mysql bash -c "mysqladmin -uroot -proot flush-logs" && cd ..
