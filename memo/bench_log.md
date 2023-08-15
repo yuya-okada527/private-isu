@@ -572,3 +572,13 @@ administrator command: Close stmt\G
 ```
 
 ## ver6
+
+### 変更点
+
+- 静的ファイルを nginx でキャッシュする
+
+### ベンチマーク
+
+```json
+{ "pass": true, "score": 2748, "success": 2433, "fail": 0, "messages": [] }
+```
