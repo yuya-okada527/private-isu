@@ -560,4 +560,15 @@ administrator command: Close stmt\G
 
 ### 変更点
 
--
+- comments.post_id の index を created_at との複合インデックスに変更
+  - `DROP INDEX post_id_idx ON comments;`
+  - `ALTER TABLE comments ADD INDEX post_id_idx (post_id, created_at DESC);`
+- app サーバのワーカープロセスを 4 に変更
+
+### ベンチマーク
+
+```json
+{ "pass": true, "score": 2467, "success": 2122, "fail": 0, "messages": [] }
+```
+
+## ver6
