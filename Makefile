@@ -8,6 +8,8 @@ stop:
 	cd webapp && docker-compose down && cd ..
 restart:
 	cd webapp && docker-compose down && docker-compose up -d && cd ..
+ps:
+	cd webapp && docker-compose ps && cd ..
 bench:
 	docker run --network host -i private-isu-benchmarker /opt/go/bin/benchmarker -t http://host.docker.internal -u /opt/go/userdata
 mysql:
@@ -22,7 +24,7 @@ alp:
 ctop:
 	ctop -a
 slow-query:
-	cat webapp/logs/mysql/mysql-slow.log | pt-query-digest
+	pt-query-digest webapp/logs/mysql/mysql-slow.log --limit 5
 rotate_slow-query:
 	cd webapp && docker-compose exec mysql bash -c "mv /var/log/mysql/mysql-slow.log /var/log/mysql/mysql-slow.log.$$(date +%Y%m%d%H%M%S)" && cd ..
 	cd webapp && docker-compose exec mysql bash -c "mysqladmin -uroot -proot flush-logs" && cd ..
