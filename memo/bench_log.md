@@ -1,0 +1,584 @@
+# ベンチログ
+
+## 初期状態
+
+### ベンチマーク
+
+```json
+{
+  "pass": true,
+  "score": 315,
+  "success": 365,
+  "fail": 6,
+  "messages": ["リクエストがタイムアウトしました (POST /login)"]
+}
+```
+
+## ver2
+
+### 変更点
+
+- nginx のデバッグログを追加
+
+### ベンチマーク
+
+```json
+{
+  "pass": true,
+  "score": 159,
+  "success": 353,
+  "fail": 13,
+  "messages": [
+    "リクエストがタイムアウトしました (GET /favicon.ico)",
+    "リクエストがタイムアウトしました (POST /login)",
+    "リクエストがタイムアウトしました (POST /register)"
+  ]
+}
+```
+
+### レイテンシ分析
+
+```
++-------+-----+-----+-----+-----+-----+--------+------------------------------+-------+--------+---------+-------+-------+--------+--------+--------+-----------+-------------+--------------+------------+
+| COUNT | 1XX | 2XX | 3XX | 4XX | 5XX | METHOD |             URI              |  MIN  |  MAX   |   SUM   |  AVG  |  P90  |  P95   |  P99   | STDDEV | MIN(BODY) |  MAX(BODY)  |  SUM(BODY)   | AVG(BODY)  |
++-------+-----+-----+-----+-----+-----+--------+------------------------------+-------+--------+---------+-------+-------+--------+--------+--------+-----------+-------------+--------------+------------+
+|   189 |   0 | 184 |   0 |   5 |   0 | GET    | /image/[0-9]+\.(jpg|png|gif) | 0.002 |  6.920 | 303.934 | 1.608 | 4.444 |  5.042 |  6.915 |  1.708 |     0.000 | 1056749.000 | 38914480.000 | 205896.720 |
+|    43 |   0 |  36 |   0 |   7 |   0 | GET    | /                            | 0.076 |  9.954 | 156.411 | 3.637 | 7.823 |  8.613 |  9.954 |  2.467 |     0.000 |   36410.000 |  1263326.000 |  29379.674 |
+|    35 |   0 |   0 |  35 |   0 |   0 | POST   | /login                       | 0.003 |  7.804 |  75.560 | 2.159 | 6.622 |  7.786 |  7.804 |  2.643 |     0.000 |       0.000 |        0.000 |      0.000 |
+|    17 |   0 |  16 |   0 |   1 |   0 | GET    | /favicon.ico                 | 0.002 | 10.002 |  64.987 | 3.823 | 8.884 | 10.002 | 10.002 |  3.385 |    43.000 |      43.000 |      688.000 |     40.471 |
+|    17 |   0 |  15 |   0 |   2 |   0 | GET    | /js/timeago.min.js           | 0.002 |  6.041 |  40.213 | 2.365 | 5.588 |  6.041 |  6.041 |  1.854 |     0.000 |    1915.000 |    28725.000 |   1689.706 |
+|    11 |   0 |  11 |   0 |   0 |   0 | GET    | /@[a-z]                      | 0.577 |  7.768 |  35.905 | 3.264 | 7.115 |  7.768 |  7.768 |  2.238 |  7817.000 |   22545.000 |   183956.000 |  16723.273 |
+|    13 |   0 |  13 |   0 |   0 |   0 | GET    | /posts/[0-9]+                | 0.075 |  8.565 |  30.001 | 2.308 | 3.911 |  8.565 |  8.565 |  2.129 |  1709.000 |    5617.000 |    46043.000 |   3541.769 |
+|    15 |   0 |  14 |   0 |   1 |   0 | GET    | /js/main.js                  | 0.001 |  6.911 |  28.409 | 1.894 | 3.218 |  6.911 |  6.911 |  1.987 |     0.000 |    1824.000 |    25536.000 |   1702.400 |
+|     8 |   0 |   0 |   4 |   4 |   0 | POST   | /                            | 0.003 |  4.312 |  11.125 | 1.391 | 4.312 |  4.312 |  4.312 |  1.509 |     0.000 |       0.000 |        0.000 |      0.000 |
+|    14 |   0 |  14 |   0 |   0 |   0 | GET    | /css/style.css               | 0.002 |  3.196 |  10.023 | 0.716 | 2.245 |  3.196 |  3.196 |  1.008 |  1549.000 |    1549.000 |    21686.000 |   1549.000 |
+|     2 |   0 |   2 |   0 |   0 |   0 | GET    | /posts                       | 1.858 |  5.349 |   7.207 | 3.604 | 5.349 |  5.349 |  5.349 |  1.746 | 33975.000 |   34161.000 |    68136.000 |  34068.000 |
+|     7 |   0 |   0 |   6 |   1 |   0 | POST   | /comment                     | 0.006 |  3.568 |   6.311 | 0.902 | 3.568 |  3.568 |  3.568 |  1.228 |     0.000 |       0.000 |        0.000 |      0.000 |
+|     6 |   0 |   0 |   0 |   6 |   0 | GET    | /admin/banned                | 0.003 |  1.905 |   4.197 | 0.700 | 1.905 |  1.905 |  1.905 |  0.831 |     0.000 |       0.000 |        0.000 |      0.000 |
+|     6 |   0 |   6 |   0 |   0 |   0 | GET    | /login                       | 0.004 |  1.653 |   3.473 | 0.579 | 1.653 |  1.653 |  1.653 |  0.755 |  1234.000 |    1234.000 |     7404.000 |   1234.000 |
+|     7 |   0 |   0 |   7 |   0 |   0 | POST   | /register                    | 0.022 |  1.872 |   2.380 | 0.340 | 1.872 |  1.872 |  1.872 |  0.626 |     0.000 |       0.000 |        0.000 |      0.000 |
+|     1 |   0 |   1 |   0 |   0 |   0 | GET    | /initialize                  | 0.032 |  0.032 |   0.032 | 0.032 | 0.032 |  0.032 |  0.032 |  0.000 |     0.000 |       0.000 |        0.000 |      0.000 |
+|     1 |   0 |   0 |   1 |   0 |   0 | GET    | /logout                      | 0.003 |  0.003 |   0.003 | 0.003 | 0.003 |  0.003 |  0.003 |  0.000 |     0.000 |       0.000 |        0.000 |      0.000 |
++-------+-----+-----+-----+-----+-----+--------+------------------------------+-------+--------+---------+-------+-------+--------+--------+--------+-----------+-------------+--------------+------------+
+```
+
+- 画像ファイルの取得に時間がかかっている
+  - MAX で 6 秒とかかかってる時もある
+  - DB に画像ファイルを raw データで保存していそう
+    - mediumblob で保存しているこれは、重そう
+- あとは、TOP 画面の処理に時間がかかっている
+
+### USE メソッド
+
+![ctop](/memo/images/ctop_ver2.png)
+
+- mysql に対する負荷が高い
+
+### Next Action
+
+- mysql に対する負荷の原因を深掘りする
+
+## ver3
+
+### 変更点
+
+- mysql のスロークエリログを有効化
+
+### ベンチマーク
+
+```json
+{
+  "pass": true,
+  "score": 103,
+  "success": 326,
+  "fail": 14,
+  "messages": [
+    "リクエストがタイムアウトしました (GET /favicon.ico)",
+    "リクエストがタイムアウトしました (POST /login)",
+    "リクエストがタイムアウトしました (POST /register)"
+  ]
+}
+```
+
+### スロークエリログ
+
+```
+cat webapp/logs/mysql/mysql-slow.log | pt-query-digest
+
+
+# 1.6s user time, 40ms system time, 44.31M rss, 32.64G vsz
+# Current date: Mon Aug 14 21:07:31 2023
+# Hostname: okadayuuyanoMacBook-Pro.local
+# Files: STDIN
+# Overall: 18.89k total, 26 unique, 183.42 QPS, 0.68x concurrency ________
+# Time range: 2023-08-14T12:05:26 to 2023-08-14T12:07:09
+# Attribute          total     min     max     avg     95%  stddev  median
+# ============     ======= ======= ======= ======= ======= ======= =======
+# Exec time            70s     5us   135ms     4ms    46ms    11ms   138us
+# Lock time           19ms       0   116us     1us     2us     3us       0
+# Rows sent        428.07k       0   9.77k   23.20    2.90  455.24       0
+# Rows examine     197.14M       0  97.68k  10.69k  97.04k  30.22k       0
+# Query size         2.87M      10 1009.05k  159.44   80.10   9.98k   31.70
+
+# Profile
+# Rank Query ID           Response time Calls R/Call V/M   Item
+# ==== ================== ============= ===== ====== ===== ===============
+#    1 0x16849282195BE09F 50.6986 72.8%  1011 0.0501  0.00 SELECT comments
+#    2 0x7539A5F45EB76A80 14.6969 21.1%  1022 0.0144  0.00 SELECT comments
+#    3 0x99AA0165670CE848  1.1597  1.7%  6329 0.0002  0.00 ADMIN PREPARE
+# MISC 0xMISC              3.0767  4.4% 10530 0.0003   0.0 <23 ITEMS>
+
+# Query 1: 11.76 QPS, 0.59x concurrency, ID 0x16849282195BE09F at byte 4311198
+# This item is included in the report because it matches --limit.
+# Scores: V/M = 0.00
+# Time range: 2023-08-14T12:05:43 to 2023-08-14T12:07:09
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count          5    1011
+# Exec time     72     51s    27ms   135ms    50ms    56ms     5ms    48ms
+# Lock time     14     3ms     1us    70us     2us     3us     3us     1us
+# Rows sent      0   2.76k       0       3    2.80    2.90    0.73    2.90
+# Rows examine  48  96.42M  97.66k  97.66k  97.66k  97.04k       0  97.04k
+# Query size     2  81.06k      80      83   82.10   80.10    0.17   80.10
+# String:
+# Databases    isuconp
+# Hosts        webapp_app_1.webapp_default
+# Users        root
+# Query_time distribution
+#   1us
+#  10us
+# 100us
+#   1ms
+#  10ms  ################################################################
+# 100ms  #
+#    1s
+#  10s+
+# Tables
+#    SHOW TABLE STATUS FROM `isuconp` LIKE 'comments'\G
+#    SHOW CREATE TABLE `isuconp`.`comments`\G
+# EXPLAIN /*!50100 PARTITIONS*/
+SELECT * FROM `comments` WHERE `post_id` = 9982 ORDER BY `created_at` DESC LIMIT 3\G
+
+# Query 2: 11.88 QPS, 0.17x concurrency, ID 0x7539A5F45EB76A80 at byte 4593854
+# This item is included in the report because it matches --limit.
+# Scores: V/M = 0.00
+# Time range: 2023-08-14T12:05:43 to 2023-08-14T12:07:09
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count          5    1022
+# Exec time     21     15s    13ms    33ms    14ms    16ms     2ms    14ms
+# Lock time     13     3ms     1us    46us     2us     3us     2us     1us
+# Rows sent      0    1022       1       1       1       1       0       1
+# Rows examine  49  97.47M  97.66k  97.66k  97.66k  97.04k       0  97.04k
+# Query size     2  64.97k      63      66   65.10   65.89    0.99   62.76
+# String:
+# Databases    isuconp
+# Hosts        webapp_app_1.webapp_default
+# Users        root
+# Query_time distribution
+#   1us
+#  10us
+# 100us
+#   1ms
+#  10ms  ################################################################
+# 100ms
+#    1s
+#  10s+
+# Tables
+#    SHOW TABLE STATUS FROM `isuconp` LIKE 'comments'\G
+#    SHOW CREATE TABLE `isuconp`.`comments`\G
+# EXPLAIN /*!50100 PARTITIONS*/
+SELECT COUNT(*) AS `count` FROM `comments` WHERE `post_id` = 9981\G
+
+# Query 3: 73.59 QPS, 0.01x concurrency, ID 0x99AA0165670CE848 at byte 596
+# This item is included in the report because it matches --limit.
+# Scores: V/M = 0.00
+# Time range: 2023-08-14T12:05:43 to 2023-08-14T12:07:09
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count         33    6329
+# Exec time      1      1s    69us     6ms   183us   332us   141us   152us
+# Lock time      0    20us       0     9us       0       0       0       0
+# Rows sent      0       0       0       0       0       0       0       0
+# Rows examine   0       0       0       0       0       0       0       0
+# Query size     6 185.42k      30      30      30      30       0      30
+# String:
+# Databases    isuconp
+# Hosts        webapp_app_1.webapp_default
+# Users        root
+# Query_time distribution
+#   1us
+#  10us  #
+# 100us  ################################################################
+#   1ms  #
+#  10ms
+# 100ms
+#    1s
+#  10s+
+```
+
+- レイテンシの 70%超が comments テーブルに対する select クエリ
+  - `SELECT * FROM comments WHERE post_id = ? ORDER BY created_at DESC LIMIT 3`
+- その次に多いのが comments テーブルに対する count クエリ
+  - `SELECT COUNT(*) AS count FROM comments WHERE post_id = ?`
+- 両方とも post_id に index を貼れば改善できそう
+
+### 実行計画
+
+```sql
+mysql> EXPLAIN SELECT * FROM `comments` WHERE `post_id` = 9982 ORDER BY `created_at` DESC LIMIT 3;
++----+-------------+----------+------------+------+---------------+------+---------+------+-------+----------+-----------------------------+
+| id | select_type | table    | partitions | type | possible_keys | key  | key_len | ref  | rows  | filtered | Extra                       |
++----+-------------+----------+------------+------+---------------+------+---------+------+-------+----------+-----------------------------+
+|  1 | SIMPLE      | comments | NULL       | ALL  | NULL          | NULL | NULL    | NULL | 99445 |    10.00 | Using where; Using filesort |
++----+-------------+----------+------------+------+---------------+------+---------+------+-------+----------+-----------------------------+
+```
+
+```sql
+mysql> EXPLAIN SELECT COUNT(*) AS `count` FROM `comments` WHERE `post_id` = 9981;
++----+-------------+----------+------------+------+---------------+------+---------+------+-------+----------+-------------+
+| id | select_type | table    | partitions | type | possible_keys | key  | key_len | ref  | rows  | filtered | Extra       |
++----+-------------+----------+------------+------+---------------+------+---------+------+-------+----------+-------------+
+|  1 | SIMPLE      | comments | NULL       | ALL  | NULL          | NULL | NULL    | NULL | 99445 |    10.00 | Using where |
++----+-------------+----------+------------+------+---------------+------+---------+------+-------+----------+-------------+
+```
+
+## ver4
+
+### 変更点
+
+- comments テーブルに、post_id の index を貼る
+  - `ALTER TABLE comments ADD INDEX post_id_idx (post_id);`
+
+### ベンチマーク
+
+```json
+{ "pass": true, "score": 2459, "success": 2114, "fail": 0, "messages": [] }
+```
+
+- fail が無くなった
+- 大幅に、スコアアップ(約 22 倍)
+
+### レイテンシ分析
+
+```
+cat webapp/logs/nginx/access.log | alp json --sort=sum -r -m "/image/[0-9]+\.(jpg|png|gif),/posts/[0-9]+,/@[a-z]"
++-------+-----+-----+-----+-----+-----+--------+------------------------------+-------+-------+---------+-------+-------+-------+-------+--------+-----------+-------------+---------------+------------+
+| COUNT | 1XX | 2XX | 3XX | 4XX | 5XX | METHOD |             URI              |  MIN  |  MAX  |   SUM   |  AVG  |  P90  |  P95  |  P99  | STDDEV | MIN(BODY) |  MAX(BODY)  |   SUM(BODY)   | AVG(BODY)  |
++-------+-----+-----+-----+-----+-----+--------+------------------------------+-------+-------+---------+-------+-------+-------+-------+--------+-----------+-------------+---------------+------------+
+|   917 |   0 | 917 |   0 |   0 |   0 | GET    | /image/[0-9]+\.(jpg|png|gif) | 0.003 | 1.919 | 351.580 | 0.383 | 0.824 | 1.023 | 1.350 |  0.327 | 42092.000 | 1056749.000 | 188046380.000 | 205066.936 |
+|   139 |   0 | 139 |   0 |   0 |   0 | GET    | /                            | 0.269 | 2.196 | 109.023 | 0.784 | 1.349 | 1.699 | 2.024 |  0.407 | 25093.000 |   36414.000 |   4300599.000 |  30939.561 |
+|   103 |   0 |   0 | 103 |   0 |   0 | POST   | /login                       | 0.005 | 1.495 |  43.039 | 0.418 | 0.895 | 0.981 | 1.264 |  0.318 |     0.000 |       0.000 |         0.000 |      0.000 |
+|    72 |   0 |  72 |   0 |   0 |   0 | GET    | /favicon.ico                 | 0.001 | 1.894 |  36.525 | 0.507 | 1.201 | 1.658 | 1.894 |  0.490 |    43.000 |      43.000 |      3096.000 |     43.000 |
+|    72 |   0 |  72 |   0 |   0 |   0 | GET    | /js/timeago.min.js           | 0.002 | 1.711 |  29.624 | 0.411 | 0.938 | 1.092 | 1.711 |  0.359 |  1915.000 |    1915.000 |    137880.000 |   1915.000 |
+|    72 |   0 |  72 |   0 |   0 |   0 | GET    | /css/style.css               | 0.002 | 1.640 |  23.979 | 0.333 | 0.765 | 0.980 | 1.640 |  0.343 |  1549.000 |    1549.000 |    111528.000 |   1549.000 |
+|    69 |   0 |  69 |   0 |   0 |   0 | GET    | /posts/[0-9]+                | 0.014 | 0.978 |  22.471 | 0.326 | 0.692 | 0.803 | 0.978 |  0.248 |  1681.000 |    6030.000 |    241090.000 |   3494.058 |
+|    72 |   0 |  72 |   0 |   0 |   0 | GET    | /js/main.js                  | 0.001 | 1.060 |  21.687 | 0.301 | 0.654 | 0.746 | 1.060 |  0.257 |  1824.000 |    1824.000 |    131328.000 |   1824.000 |
+|    37 |   0 |  37 |   0 |   0 |   0 | GET    | /@[a-z]                      | 0.120 | 1.379 |  20.190 | 0.546 | 1.054 | 1.225 | 1.379 |  0.306 |  8284.000 |   34218.000 |    694515.000 |  18770.676 |
+|    25 |   0 |   0 |  25 |   0 |   0 | POST   | /comment                     | 0.009 | 1.095 |  14.029 | 0.561 | 0.786 | 0.930 | 1.095 |  0.230 |     0.000 |       0.000 |         0.000 |      0.000 |
+|    32 |   0 |   0 |  16 |  16 |   0 | POST   | /                            | 0.006 | 0.987 |  11.924 | 0.373 | 0.720 | 0.944 | 0.987 |  0.265 |     0.000 |       0.000 |         0.000 |      0.000 |
+|    25 |   0 |   0 |  25 |   0 |   0 | POST   | /register                    | 0.024 | 0.788 |   7.508 | 0.300 | 0.495 | 0.582 | 0.788 |  0.174 |     0.000 |       0.000 |         0.000 |      0.000 |
+|     6 |   0 |   6 |   0 |   0 |   0 | GET    | /posts                       | 0.710 | 1.958 |   6.505 | 1.084 | 1.958 | 1.958 | 1.958 |  0.430 | 33991.000 |   34122.000 |    204430.000 |  34071.667 |
+|    25 |   0 |   0 |   0 |  25 |   0 | GET    | /admin/banned                | 0.004 | 0.796 |   5.379 | 0.215 | 0.467 | 0.482 | 0.796 |  0.185 |     0.000 |       0.000 |         0.000 |      0.000 |
+|     7 |   0 |   0 |   7 |   0 |   0 | GET    | /logout                      | 0.002 | 1.109 |   4.380 | 0.626 | 1.109 | 1.109 | 1.109 |  0.423 |     0.000 |       0.000 |         0.000 |      0.000 |
+|    14 |   0 |  14 |   0 |   0 |   0 | GET    | /login                       | 0.005 | 0.791 |   2.878 | 0.206 | 0.430 | 0.791 | 0.791 |  0.227 |  1234.000 |    1234.000 |     17276.000 |   1234.000 |
+|     1 |   0 |   1 |   0 |   0 |   0 | GET    | /initialize                  | 0.077 | 0.077 |   0.077 | 0.077 | 0.077 | 0.077 | 0.077 |  0.000 |     0.000 |       0.000 |         0.000 |      0.000 |
++-------+-----+-----+-----+-----+-----+--------+------------------------------+-------+-------+---------+-------+-------+-------+-------+--------+-----------+-------------+---------------+------------+
+```
+
+- TOP ページのアクセス数が 43 から 139 に増加している
+  - 速度は、3.637sec から 0.784(5 倍)に改善している
+- 他の URL も、同様に改善している
+  - mysql の負荷が下がっていると思われる
+
+### スロークエリ
+
+```
+pt-query-digest webapp/logs/mysql/mysql-slow.log --limit 8
+
+# 5.7s user time, 60ms system time, 42.72M rss, 32.13G vsz
+# Current date: Tue Aug 15 13:51:16 2023
+# Hostname: okadayuuyanoMacBook-Pro.local
+# Files: webapp/logs/mysql/mysql-slow.log
+# Overall: 71.78k total, 29 unique, 190.41 QPS, 0.04x concurrency ________
+# Time range: 2023-08-15T04:44:32 to 2023-08-15T04:50:49
+# Attribute          total     min     max     avg     95%  stddev  median
+# ============     ======= ======= ======= ======= ======= ======= =======
+# Exec time            15s     5us    79ms   209us   287us     1ms   119us
+# Lock time           60ms       0   434us       0     2us     3us       0
+# Rows sent          1.84M       0   9.79k   26.89    0.99  490.83       0
+# Rows examine       8.74M       0  97.69k  127.71   10.84   2.62k       0
+# Query size        13.10M      11   1.09M  191.31   80.10  11.26k   31.70
+
+# Profile
+# Rank Query ID           Response time Calls R/Call V/M   Item
+# ==== ================== ============= ===== ====== ===== ===============
+#    1 0x44D0B06948A2E5CC  3.7056 24.6%   180 0.0206  0.00 SELECT posts
+#    2 0x99AA0165670CE848  3.5263 23.4% 23900 0.0001  0.00 ADMIN PREPARE
+#    3 0xE070DA9421CA8C8D  2.3311 15.5% 13123 0.0002  0.00 SELECT users
+#    4 0xB718D440CBBB5C55  1.2574  8.3%  1337 0.0009  0.00 SELECT posts
+#    5 0x16849282195BE09F  1.0145  6.7%  4394 0.0002  0.00 SELECT comments
+#    6 0x7539A5F45EB76A80  0.9284  6.2%  4482 0.0002  0.00 SELECT comments
+#    7 0xB2ED5CF03D4E749F  0.6315  4.2%    44 0.0144  0.00 SELECT comments
+#    8 0x111FD2D3F3B3B4EB  0.2995  2.0% 23798 0.0000  0.00 ADMIN CLOSE STMT
+# MISC 0xMISC              1.3669  9.1%   525 0.0026   0.0 <21 ITEMS>
+
+# Query 1: 2.57 QPS, 0.05x concurrency, ID 0x44D0B06948A2E5CC at byte 29290355
+# Scores: V/M = 0.00
+# Time range: 2023-08-15T04:44:32 to 2023-08-15T04:45:42
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count          0     180
+# Exec time     24      4s    17ms    37ms    21ms    30ms     4ms    19ms
+# Lock time      2     1ms     1us   419us     7us    31us    31us     2us
+# Rows sent     93   1.72M   9.77k   9.79k   9.78k   9.33k       0   9.33k
+# Rows examine  39   3.44M  19.53k  19.57k  19.55k  19.40k       0  19.40k
+# Query size     0  16.17k      92      92      92      92       0      92
+# String:
+# Databases    isuconp
+# Hosts        webapp_app_1.webapp_default
+# Users        root
+# Query_time distribution
+#   1us
+#  10us
+# 100us
+#   1ms
+#  10ms  ################################################################
+# 100ms
+#    1s
+#  10s+
+# Tables
+#    SHOW TABLE STATUS FROM `isuconp` LIKE 'posts'\G
+#    SHOW CREATE TABLE `isuconp`.`posts`\G
+# EXPLAIN /*!50100 PARTITIONS*/
+SELECT `id`, `user_id`, `body`, `created_at`, `mime` FROM `posts` ORDER BY `created_at` DESC\G
+
+# Query 2: 336.62 QPS, 0.05x concurrency, ID 0x99AA0165670CE848 at byte 0
+# Scores: V/M = 0.00
+# Time range: 2023-08-15T04:44:32 to 2023-08-15T04:45:43
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count         33   23900
+# Exec time     23      4s    65us     7ms   147us   247us   119us   119us
+# Lock time      0    28us       0    10us       0       0       0       0
+# Rows sent      0       0       0       0       0       0       0       0
+# Rows examine   0       0       0       0       0       0       0       0
+# Query size     5 700.20k      30      30      30      30       0      30
+# String:
+# Databases    isuconp
+# Hosts        webapp_app_1.webapp_default
+# Users        root
+# Query_time distribution
+#   1us
+#  10us  ######
+# 100us  ################################################################
+#   1ms  #
+#  10ms
+# 100ms
+#    1s
+#  10s+
+administrator command: Prepare\G
+
+# Query 3: 187.47 QPS, 0.03x concurrency, ID 0xE070DA9421CA8C8D at byte 3141673
+# Scores: V/M = 0.00
+# Time range: 2023-08-15T04:44:32 to 2023-08-15T04:45:42
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count         18   13123
+# Exec time     15      2s   100us     5ms   177us   260us   122us   152us
+# Lock time     47    29ms     1us   331us     2us     2us     4us     1us
+# Rows sent      0  12.82k       1       1       1       1       0       1
+# Rows examine   0  12.82k       1       1       1       1       0       1
+# Query size     3 485.71k      36      39   37.90   36.69    0.17   36.69
+# String:
+# Databases    isuconp
+# Hosts        webapp_app_1.webapp_default
+# Users        root
+# Query_time distribution
+#   1us
+#  10us
+# 100us  ################################################################
+#   1ms  #
+#  10ms
+# 100ms
+#    1s
+#  10s+
+# Tables
+#    SHOW TABLE STATUS FROM `isuconp` LIKE 'users'\G
+#    SHOW CREATE TABLE `isuconp`.`users`\G
+# EXPLAIN /*!50100 PARTITIONS*/
+SELECT * FROM `users` WHERE `id` = 58\G
+
+# Query 4: 18.83 QPS, 0.02x concurrency, ID 0xB718D440CBBB5C55 at byte 29099351
+# Scores: V/M = 0.00
+# Time range: 2023-08-15T04:44:32 to 2023-08-15T04:45:43
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count          1    1337
+# Exec time      8      1s   203us     8ms   940us     3ms   983us   541us
+# Lock time     12     7ms     2us   434us     5us     5us    16us     2us
+# Rows sent      0   1.31k       1       1       1       1       0       1
+# Rows examine   0   1.31k       1       1       1       1       0       1
+# Query size     0  51.63k      37      42   39.54   40.45    0.50   38.53
+# String:
+# Databases    isuconp
+# Hosts        webapp_app_1.webapp_default
+# Users        root
+# Query_time distribution
+#   1us
+#  10us
+# 100us  ################################################################
+#   1ms  ########################
+#  10ms
+# 100ms
+#    1s
+#  10s+
+# Tables
+#    SHOW TABLE STATUS FROM `isuconp` LIKE 'posts'\G
+#    SHOW CREATE TABLE `isuconp`.`posts`\G
+# EXPLAIN /*!50100 PARTITIONS*/
+SELECT * FROM `posts` WHERE `id` = 10180\G
+
+# Query 5: 62.77 QPS, 0.01x concurrency, ID 0x16849282195BE09F at byte 876730
+# Scores: V/M = 0.00
+# Time range: 2023-08-15T04:44:32 to 2023-08-15T04:45:42
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count          6    4394
+# Exec time      6      1s   123us     1ms   230us   348us    66us   214us
+# Lock time     16    10ms     1us    75us     2us     2us     3us     1us
+# Rows sent      0   7.43k       0       3    1.73    2.90    1.42    2.90
+# Rows examine   0  32.23k       0      26    7.51   16.81    6.66    8.91
+# Query size     2 353.83k      79      83   82.46   80.10    0.12   80.10
+# String:
+# Databases    isuconp
+# Hosts        webapp_app_1.webapp_default
+# Users        root
+# Query_time distribution
+#   1us
+#  10us
+# 100us  ################################################################
+#   1ms  #
+#  10ms
+# 100ms
+#    1s
+#  10s+
+# Tables
+#    SHOW TABLE STATUS FROM `isuconp` LIKE 'comments'\G
+#    SHOW CREATE TABLE `isuconp`.`comments`\G
+# EXPLAIN /*!50100 PARTITIONS*/
+SELECT * FROM `comments` WHERE `post_id` = 9999 ORDER BY `created_at` DESC LIMIT 3\G
+
+# Query 6: 64.03 QPS, 0.01x concurrency, ID 0x7539A5F45EB76A80 at byte 19949762
+# Scores: V/M = 0.00
+# Time range: 2023-08-15T04:44:32 to 2023-08-15T04:45:42
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count          6    4482
+# Exec time      6   928ms   123us   982us   207us   301us    58us   185us
+# Lock time     17    11ms     1us   167us     2us     2us     4us     1us
+# Rows sent      0   4.38k       1       1       1       1       0       1
+# Rows examine   0  25.48k       0      23    5.82   13.83    5.37    5.75
+# Query size     2 286.49k      62      66   65.45   65.89    1.57   62.76
+# String:
+# Databases    isuconp
+# Hosts        webapp_app_1.webapp_default
+# Users        root
+# Query_time distribution
+#   1us
+#  10us
+# 100us  ################################################################
+#   1ms  #
+#  10ms
+# 100ms
+#    1s
+#  10s+
+# Tables
+#    SHOW TABLE STATUS FROM `isuconp` LIKE 'comments'\G
+#    SHOW CREATE TABLE `isuconp`.`comments`\G
+# EXPLAIN /*!50100 PARTITIONS*/
+SELECT COUNT(*) AS `count` FROM `comments` WHERE `post_id` = 9427\G
+
+# Query 7: 0.69 QPS, 0.01x concurrency, ID 0xB2ED5CF03D4E749F at byte 109581
+# Scores: V/M = 0.00
+# Time range: 2023-08-15T04:44:32 to 2023-08-15T04:45:36
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count          0      44
+# Exec time      4   632ms    14ms    19ms    14ms    15ms   834us    14ms
+# Lock time      0    89us     1us     4us     2us     2us       0     1us
+# Rows sent      0      44       1       1       1       1       0       1
+# Rows examine  48   4.20M  97.66k  97.69k  97.67k  97.04k       0  97.04k
+# Query size     0   2.66k      61      62   61.89   59.77       0   59.77
+# String:
+# Databases    isuconp
+# Hosts        webapp_app_1.webapp_default
+# Users        root
+# Query_time distribution
+#   1us
+#  10us
+# 100us
+#   1ms
+#  10ms  ################################################################
+# 100ms
+#    1s
+#  10s+
+# Tables
+#    SHOW TABLE STATUS FROM `isuconp` LIKE 'comments'\G
+#    SHOW CREATE TABLE `isuconp`.`comments`\G
+# EXPLAIN /*!50100 PARTITIONS*/
+SELECT COUNT(*) AS count FROM `comments` WHERE `user_id` = 49\G
+
+# Query 8: 335.18 QPS, 0.00x concurrency, ID 0x111FD2D3F3B3B4EB at byte 13660419
+# Scores: V/M = 0.00
+# Time range: 2023-08-15T04:44:32 to 2023-08-15T04:45:43
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count         33   23798
+# Exec time      1   300ms     5us     4ms    12us    35us    34us     7us
+# Lock time      0       0       0       0       0       0       0       0
+# Rows sent      0       0       0       0       0       0       0       0
+# Rows examine   0       0       0       0       0       0       0       0
+# Query size     5 766.93k      33      33      33      33       0      33
+# String:
+# Databases    isuconp
+# Hosts        webapp_app_1.webapp_default
+# Users        root
+# Query_time distribution
+#   1us  ################################################################
+#  10us  #######################
+# 100us  #
+#   1ms  #
+#  10ms
+# 100ms
+#    1s
+#  10s+
+administrator command: Close stmt\G
+```
+
+## ver5
+
+### 変更点
+
+- comments.post_id の index を created_at との複合インデックスに変更
+  - `DROP INDEX post_id_idx ON comments;`
+  - `ALTER TABLE comments ADD INDEX post_id_idx (post_id, created_at DESC);`
+- app サーバのワーカープロセスを 4 に変更
+
+### ベンチマーク
+
+```json
+{ "pass": true, "score": 2467, "success": 2122, "fail": 0, "messages": [] }
+```
+
+## ver6
+
+### 変更点
+
+- 静的ファイルを nginx でキャッシュする
+
+### ベンチマーク
+
+```json
+{ "pass": true, "score": 2748, "success": 2433, "fail": 0, "messages": [] }
+```

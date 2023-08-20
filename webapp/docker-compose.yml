@@ -4,6 +4,8 @@ services:
     volumes:
       - ./etc/nginx/conf.d:/etc/nginx/conf.d
       - ./public:/public
+      # アクセスログ
+      - ./logs/nginx:/var/log/nginx
     ports:
       - "80:80"
     links:
@@ -28,7 +30,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
+          cpus: "1"
           memory: 1g
 
   mysql:
@@ -41,12 +43,14 @@ services:
       - mysql:/var/lib/mysql
       - ./etc/my.cnf:/etc/my.cnf
       - ./sql:/docker-entrypoint-initdb.d
+      # スロークエリログ
+      - ./logs/mysql:/var/log/mysql
     ports:
       - "3306:3306"
     deploy:
       resources:
         limits:
-          cpus: '1'
+          cpus: "1"
           memory: 1g
 
   memcached:
